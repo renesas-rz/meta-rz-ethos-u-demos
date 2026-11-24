@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include <wayland-client.h>
 
-#include <wayland/xdg-shell-client-protocol.h>
+#include <xdg-shell-client-protocol.h>
 
 using namespace std;
 
