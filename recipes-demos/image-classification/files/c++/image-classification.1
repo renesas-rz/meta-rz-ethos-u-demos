@@ -1,0 +1,270 @@
+.TH IMAGE\-CLASSIFICATION 1 "November 2026" "RZ/G3E" "User Commands"
+.SH NAME
+image\-classification \- classify a picture, a slideshow or a live USB camera stream on the Arm Ethos\-U55 NPU
+.SH SYNOPSIS
+.B image\-classification
+[\fB\-c\fR] [\fB\-D\fR] [\fB\-o\fR \fIoutput\fR] [\fB\-i\fR \fIimage\fR] [\fB\-n\fR \fIruns\fR]
+.br
+.B image\-classification \-s
+[\fB\-c\fR|\fB\-D\fR] [\fB\-t\fR \fIseconds\fR] [\fB\-o\fR \fIoutput\fR] [\fB\-i\fR \fIimage\fR] [\fB\-n\fR \fIruns\fR]
+.br
+.B image\-classification \-u
+[\fB\-c\fR|\fB\-D\fR] [\fB\-m\fR] [\fB\-a\fR] [\fB\-g\fR] [\fB\-T\fR] [\fB\-d\fR \fIdevice\fR] [\fB\-o\fR \fIoutput\fR] [\fB\-M\fR] [\fB\-n\fR \fIframes\fR]
+.br
+.B image\-classification \-h
+.SH DESCRIPTION
+.B image\-classification
+runs the image classification network MobileNet V2 (8\-bit quantized, 224x224 input, 1000 ImageNet classes) on the Arm Ethos\-U55 NPU of the Renesas RZ/G3E.
+The model has been compiled with Vela and is run through the TensorFlow Lite external delegate.
+For every picture or camera frame up to five classes are shown with their confidence in percent. Only classes with at least 1 percent are listed; if no class reaches 1 percent, the program says so.
+.PP
+The program has three modes.
+.TP
+.B Single picture
+This is the default.
+The picture is classified several times (see
+.BR \-n )
+and the average inference time is reported.
+The result is shown on the display until ENTER is pressed, or printed to the console with
+.BR \-c .
+.TP
+.B Slideshow (\-s)
+All pictures (\&.bmp, \&.jpg, \&.jpeg, \&.png) in the folder of the selected picture are classified one after the other, sorted by name and starting with the selected one.
+The slideshow repeats until ENTER or Ctrl\-C is pressed.
+A folder with only one picture stays on the display.
+A picture that cannot be loaded is skipped with a message.
+.TP
+.B Camera (\-u)
+Frames from a USB camera (UVC, 640x480) are classified continuously until ENTER or Ctrl\-C is pressed.
+The centre square of every frame is classified, so the picture is not stretched.
+A separate thread reads the camera and keeps only the newest frame, so a slow display or inference does not build up a queue of old pictures.
+.SH OPTIONS
+.TP
+.BR \-c ", " \-\-console
+Print the results to the console only and do not use the display.
+.TP
+.BR \-o ", " \-\-output " \fIname\fR"
+Display output of the compositor that is used for the display size and for the window, for example HDMI\-A\-1, DSI\-1 or DVI\-D\-1.
+The names are those of the Weston outputs; list them with
+.IR "wayland\-info | grep \(dqname: \(aq\(dq" .
+The name may have 1 to 32 characters, only letters, digits and . _ \-, and is refused otherwise.
+Default: HDMI\-A\-1.
+Cannot be used with
+.BR \-c .
+.TP
+.BR \-i ", " \-\-image " \fIfile\fR"
+Picture to classify.
+With
+.B \-s
+the folder of this file is used for the slideshow and the slideshow starts with this picture.
+Default: /usr/share/image\-classification/images/cat.bmp
+.TP
+.BR \-n ", " \-\-number " \fIcount\fR"
+Number of inference runs per picture (at least 1), from which the average inference time is calculated (the first run after start\-up is a dry run and is not counted).
+With
+.B \-u
+it is the number of frames over which the inference time and the frame rate are averaged (running average), and the number of frames between two timing reports.
+Default: 10
+.TP
+.BR \-\-min\-percent " \fIpercent\fR"
+The smallest confidence, from 0 to 100 percent, at which a class is listed.
+The model gives its confidence in steps of 0.39 percent, so what it gives below about 0.2 percent is stored as 0, and the order of such classes means nothing.
+With 0 every class above 0 percent is listed (a class at 0 never is), and the output is exactly that of the original program.
+If no class reaches the limit, the program says so.
+Default: 1
+.TP
+.BR \-s ", " \-\-slideshow
+Run the slideshow described above.
+.TP
+.BR \-t ", " \-\-time " \fIseconds\fR"
+Time each picture is shown in the slideshow, from 1 to 3600 seconds.
+Only with
+.BR \-s .
+Default: 5
+.TP
+.BR \-D ", " \-\-demo
+Presentation view for the display: a header in Renesas blue with the device name, a large picture, the best match in large letters with a confidence bar, the four next best matches, headline numbers and, with the camera, a graph of the inference time.
+See
+.B DEMO VIEW
+below.
+Works with the camera, the slideshow and a single picture.
+Needs the display and cannot be used with
+.BR \-c .
+.TP
+.BR \-u ", " \-\-usb
+Classify the live picture of a USB camera instead of a file.
+Cannot be combined with
+.B \-i
+or
+.BR \-s .
+.TP
+.BR \-d ", " \-\-device " \fIdevice\fR"
+Video device of the camera, for example /dev/video0.
+The name must start with /dev/, may contain only letters, digits and the characters / _ . : \-, may have up to 128 characters, and must be an existing device (names below /dev/v4l/by\-path/ and /dev/v4l/by\-id/ are accepted); anything else (for example spaces) is refused.
+Default: the first USB video capture device found.
+Only with
+.BR \-u .
+.TP
+.BR \-m ", " \-\-mirror
+Mirror the camera picture horizontally.
+The picture shown and the picture that is classified are both mirrored.
+Only with
+.BR \-u .
+.TP
+.BR \-a ", " \-\-allow\-dynamic\-framerate
+Keep the dynamic frame rate (exposure_dynamic_framerate) of the camera.
+By default the program switches it off, because many cameras then lower their frame rate in dim light, for example from 30 to 15 frames per second.
+The picture can be darker in dim light with the default.
+Only with
+.BR \-u .
+.TP
+.BR \-g ", " \-\-opencl
+Try the GPU (OpenCL) for the crop, resize and colour conversion of the camera picture.
+The program prints which OpenCL device it uses, and continues on the CPU if there is none.
+Without this option OpenCL is not initialised at all.
+Compare with
+.BR \-T .
+Only with
+.BR \-u .
+.TP
+.BR \-M ", " \-\-memory
+Print one line about the memory of the program every minute: resident memory, private (anonymous) memory, memory of files, shared memory, what the C library has in use, free and allocated with mmap, and the number of threads and open files.
+Meant to look for memory growth in long runs.
+Only with
+.B \-u
+or
+.BR \-s .
+.TP
+.BR \-T ", " \-\-timing
+Print a table with the average, minimum and maximum time of every processing step of the camera loop, the share of each step, the processing time per frame, the load against the frame time of the camera, and the age of the frame.
+A second inference on the same frame is run for comparison, which lowers the frame rate, so this option is meant for measurements and not for permanent use.
+Only with
+.BR \-u .
+.TP
+.BR \-h ", " \-\-help
+Print a short help and exit.
+.PP
+.BR \-d ", " \-m ", " \-a ", " \-T " and " \-g " require " \-u .
+.BR \-t " requires " \-s .
+.B \-D
+cannot be used together with
+.BR \-c .
+Invalid combinations are reported and the program exits with an error.
+.SH DISPLAY
+The program draws full screen through the Wayland compositor (Weston).
+The size is read with
+.BR wayland\-info (1)
+from the output selected with
+.B \-o
+(default HDMI\-A\-1), and the window is made full screen on that same output.
+If the output does not exist, the program lists the outputs it found and prints the results to the console.
+Displays from 800x600 to 1920x1080 pixels are supported, and the layout (text size, margins, picture area) adapts to the size.
+For any other size, or if no display is found, the results are printed to the console.
+.PP
+In the single picture mode, the program waits for ENTER on its standard input.
+.SH DEMO VIEW
+The best match is shown in
+.IP \(bu 2
+green if its confidence is 51 percent or more,
+.IP \(bu 2
+amber if it is between 20 and 51 percent,
+.IP \(bu 2
+grey and marked "uncertain" if it is below 20 percent.
+.PP
+With the camera, the class scores are averaged over the last few frames, so that the best match does not flicker between similar classes, and the colour changes from green back to amber only below 46 percent.
+The corners of the square that is classified are marked on the camera picture.
+The text and the graph are refreshed about ten times per second.
+.PP
+The graph in the bottom right corner shows the inference time of the NPU.
+The line shows the newest frames (about 3 seconds).
+On displays about 950 pixels wide and more, a histogram of the last 300 frames (about 10 seconds) is drawn next to the line in the same vertical scale: the longer a bar, the more frames took that time, and the brighter bar is the typical value.
+The vertical range follows the fastest and the slowest frame of the last 10 seconds, so no frame is cut off; it widens at once for a slow frame and narrows back slowly afterwards.
+The caption gives the range of "most" frames, which are the middle 90 percent (the fastest and the slowest 5 percent are left out), and, where there is room, the slowest frame as "worst".
+The limits are set when the program is compiled (DEMO_CONFIDENT_PERCENT and DEMO_UNCERTAIN_PERCENT in demo.h, TOP_RESULTS_MINIMUM_PERCENT in processing.h).
+.SH FILES
+.TP
+.I /usr/share/models/mobilenet_v2/mobilenet_v2_1.0_224_INT8/mobilenet_v2_1.0_224_INT8_vela.tflite
+The model, compiled with Vela for the Ethos\-U55.
+.TP
+.I /usr/share/image\-classification/labels/labels_mobilenet_v2_1.0_224.txt
+The names of the 1000 classes, one per line.
+.TP
+.I /usr/share/image\-classification/images/
+Default pictures, among them cat.bmp.
+.TP
+.I /usr/share/doc/image\-classification/README_USB_CAMERA.md
+The complete description of the options, the presentation view, the memory log and the messages.
+.TP
+.I /usr/lib/libethosu_op_delegate.so.1
+The Ethos\-U delegate library for TensorFlow Lite.
+.TP
+.I /dev/accel/accel0
+The NPU device.
+.TP
+.I /dev/video*
+Camera devices.
+.SH ENVIRONMENT
+.TP
+.B XDG_RUNTIME_DIR, WAYLAND_DISPLAY
+Used to find the Wayland compositor, as for every Wayland program.
+.TP
+.B NO_COLOR
+If set, the timing table is printed without colours.
+Colours are used only when the output is a terminal.
+.TP
+.B LC_ALL, LC_CTYPE, LANG
+If the first of them that is set names a UTF\-8 locale, the bars in the timing table are drawn with block characters, otherwise with # and \-.
+.SH EXIT STATUS
+.TP
+.B 0
+Normal end, including quitting with ENTER or Ctrl\-C, and
+.BR \-h .
+.TP
+.B 1
+An error: invalid options, a picture, model or label file that cannot be read, a camera that cannot be opened or that stops delivering frames, or a display error.
+.SH EXAMPLES
+Classify the default picture and print the result:
+.PP
+.RS
+image\-classification \-c
+.RE
+.PP
+Show a slideshow of the pictures in a folder, starting with one of them, 10 seconds each, in the presentation view:
+.PP
+.RS
+image\-classification \-s \-D \-t 10 \-i /home/root/pictures/first.jpg
+.RE
+.PP
+Live camera in the presentation view, mirrored:
+.PP
+.RS
+image\-classification \-u \-D \-m
+.RE
+.PP
+Measure the camera loop with the GPU, averaged over 300 frames, without terminal input (for example in the background), and stop it with Ctrl\-C from another session:
+.PP
+.RS
+image\-classification \-u \-D \-T \-g \-n 300 < /dev/null > timing.log 2>&1 &
+.br
+kill \-INT $!
+.RE
+.SH NOTES
+The camera is opened with GStreamer at 640x480 (raw video first, then MJPEG, then the default format of the camera), with OpenCV's V4L2 backend as the last choice.
+The frame rate of the camera is measured while the program runs and is used in the timing report.
+.PP
+The camera mode and the slideshow check the keyboard for ENTER and ignore the terminal signal SIGTTIN, so they also run in the background.
+.SH BUGS
+In the single picture mode the program waits for ENTER on its standard input.
+Without a terminal (for example when it is started automatically) it ends at once.
+Use the camera mode or the slideshow in that case.
+.PP
+In long runs the heap of the program grew slowly in the measurements made so far, by about 4 kilobytes per minute after the first 12 minutes of a run.
+The cause is not known.
+.SH SEE ALSO
+.BR weston.ini (5),
+.BR weston (1),
+.BR wayland\-info (1),
+.BR v4l2\-ctl (1)
+.SH COPYRIGHT
+Copyright (C) 2026 Renesas Electronics Corp.
+Licensed under the Apache License, Version 2.0.
