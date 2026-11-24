@@ -20,7 +20,7 @@
 #include <opencv4/opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv4/opencv2/imgproc/imgproc.hpp>
 
-#define LABEL_FILE_PATH "/usr/share/image-classification/labels/labels_mobilenet_v2_1.0_224.txt"
+#define LABEL_FILE_PATH "/usr/share/models/mobilenet_v2/labels_mobilenet_v2_1.0_224.txt"
 #define MODEL_INPUT_SIZE 224
 #define TEXT_OFFSET 20
 

@@ -104,7 +104,7 @@ The camera mode and the slideshow check the keyboard for ENTER; in the backgroun
 - Weston with xdg-shell; `wayland-info` (package `wayland-utils`) for the display size.
 - Optional: OpenCV with OpenCL and the Mali library for `-g`.
 
-Fixed paths: model `/usr/share/models/mobilenet_v2/mobilenet_v2_1.0_224_INT8/mobilenet_v2_1.0_224_INT8_vela.tflite`, labels `/usr/share/image-classification/labels/labels_mobilenet_v2_1.0_224.txt`, pictures `/usr/share/image-classification/images/`. They are constants in `main.cpp` and `processing.h`; there is no option to change the model yet, and the texts "MobileNet V2" and "Ethos-U55" in the presentation view, and the operator counts in the information panel of the plain view, are fixed.
+Fixed paths: model `/usr/share/models/mobilenet_v2/mobilenet_v2_1.0_224_INT8/mobilenet_v2_1.0_224_INT8_vela.tflite`, labels `/usr/share/models/mobilenet_v2/labels_mobilenet_v2_1.0_224.txt`, pictures `/usr/share/image-classification/images/`. They are constants in `main.cpp` and `processing.h`; there is no option to change the model yet, and the texts "MobileNet V2" and "Ethos-U55" in the presentation view, and the operator counts in the information panel of the plain view, are fixed.
 
 ## Build
 

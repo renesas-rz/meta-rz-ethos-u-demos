@@ -960,7 +960,7 @@ int main(int argc, char **argv) {
 		labels = load_labels_file();
 
 		if (labels.empty())
-			throw runtime_error("Could not read labels file: /usr/share/image-classification/labels/labels_mobilenet_v2_1.0_224.txt");
+			throw runtime_error("Could not read labels file: " LABEL_FILE_PATH);
 
 		if (usb_mode || slideshow) {
 			if (usb_mode)
